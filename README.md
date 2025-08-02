@@ -1,35 +1,30 @@
 # Nova Script Documentation
 
-\---
-# Nova Script Documentation
+---
 
 ## 📘 Table of Contents
 
-1. [Introduction](#1-introduction)
-2. [Language Features](#2-language-features)
-    - [Print Statements (`say`)](#21-print-statements-say)
-    - [Variable Declarations (`let`)](#22-variable-declarations-let)
-    - [Constants (`const`)](#23-constants-const)
-    - [Functions (`define`)](#24-functions-define)
-    - [Conditionals (`if`, `else if`, `else`)](#25-conditionals-if-else-if-else)
-    - [Loops (`repeat`, `while`)](#26-loops-repeat-while)
-    - [Lists and Iteration](#27-lists-and-iteration)
-    - [Comments](#28-comments)
-    - [Modules (Importing)](#29-modules-importing)
-    - [Error Handling (`try`, `catch`)](#210-error-handling-try-catch)
-3. [Type System](#3-type-system)
-4. [Operators](#4-operators)
-5. [Built-in Functions](#5-built-in-functions)
-6. [Examples](#6-examples)
-7. [File Execution](#8-file-execution)
-
+1. [Introduction](#1-introduction)  
+2. [Language Features](#2-language-features)  
+   - [2.1 Print Statements (`say`)](#21-print-statements-say)  
+   - [2.2 Variable Declarations (`let`)](#22-variable-declarations-let)  
+   - [2.3 Functions (`define`)](#23-functions-define)  
+   - [2.4 Conditionals (`when`, `otherwise`)](#24-conditionals-when-otherwise)  
+   - [2.5 Loops (`while`, `for`)](#25-loops-while-for)  
+   - [2.6 Comments](#26-comments)  
+   - [2.7 Error Handling (`try`, `catch`)](#27-error-handling-try-catch)  
+3. [Operators](#3-operators)  
+4. [Examples](#4-examples)  
+5. [File Execution](#5-file-execution)
 
 ---
 
 ## 1. Introduction
 
-Nova Script is a simple, readable, English-like programming language designed for beginners and rapid prototyping. It emphasizes clarity and natural language syntax.
-Checkout this LinkedIN post for more info : https://www.linkedin.com/feed/update/urn:li:activity:7339534452844281857/
+Nova Script is a simple, readable, English-like programming language designed for beginners and rapid prototyping. It emphasizes clarity and natural language syntax.  
+Checkout this LinkedIN post for more info:  
+https://www.linkedin.com/feed/update/urn:li:activity:7339534452844281857/
+
 ---
 
 ## 2. Language Features
@@ -47,99 +42,75 @@ say x
 ### 2.2 Variable Declarations (`let`)
 
 ```ns
-let count be 42 as integer
-let name be "Alice" as string
-let value as integer
+let count be 42
+let name be "Alice"
+let value be count
 ```
 
-* **Syntax**: `let <identifier> [be= <expression>] [as integer | long | string]`
+* **Syntax**: `let <identifier> [be= <expression>]`
 * Declares a variable, optionally with a value and type.
 
-### 2.3 Constants (`const`)
+### 2.3 Functions (`define`)
 
 ```ns
-const pi be 3.14 as float
+define function sayName(name):
+  say "Hello, "
+  say name
+
+call sayName("Novascript")
 ```
 
-* **Syntax**: `const <identifier> be <expression> [as <type>]`
-* Declares an immutable value.
-
-### 2.4 Functions (`define`)
-
-```ns
-define greet with name as string:
-  say "Hello, " + name
-
-greet with "Alice"
-```
-
-* **Syntax**: `define <function-name> [with <param> as <type>, ...]:`
+* **Syntax**: `define function <function-name> [with <param> as <type>, ...]:`
 * Defines a function.
 
-### 2.5 Conditionals (`if`, `else if`, `else`)
+### 2.4 Conditionals (`when`,`otherwise`)
 
 ```ns
-if x > 10:
-  say "Greater than 10"
-else if x == 10:
-  say "Equal to 10"
-else:
-  say "Less than 10"
+let age be 18
+when age<18 then
+    say "You can't vote"
+otherwise
+    say "You can vote"
+end
 ```
 
 * **Syntax**:
 
-  * `if <condition>:`
-  * `else if <condition>:`
-  * `else:`
+  * `when <condition> then`
+  * `otherwise`
 
-### 2.6 Loops (`repeat`, `while`)
+### 2.5 Loops (`while`, `for`)
 
 ```ns
-repeat 5 times:
-  say "Hello"
+#while loop
+repeat while a<10
+    say a
+    set a to a+1
+end
 
-let i be 0
-while i < 5:
-  say i
-  let i be i + 1
+#for
+repeat for j from 1 to 5
+    say j
+end
 ```
 
 * **Syntax**:
 
-  * `repeat <number> times:`
-  * `while <condition>:`
+  * `repeat while <condition>`
+  * `repeat for <variable> from <start> to <end>:`
 
-### 2.7 Lists and Iteration
-
-```ns
-let items be [1, 2, 3, 4]
-for each item in items:
-  say item
-```
-
-* **Syntax**: `for each <item> in <list>:`
-* Iterates through a list.
-
-### 2.8 Comments
+### 2.6 Comments
 
 ```ns
 # This is a single-line comment
+/*
+THis is a multiline comment.
+*/
 ```
 
 * Lines starting with `#` are ignored.
 
-### 2.9 Modules (Importing)
-
-```ns
-import math
-say math.pi
-```
-
-* **Syntax**: `import <module>`
-* Imports functions/constants from a module.
-
-### 2.10 Error Handling (`try`, `catch`)
+### 2.7 Error Handling (`try`, `catch`)
 
 ```ns
 try:
@@ -155,27 +126,14 @@ catch error:
 
 ---
 
-## 3. Type System
 
-* **Types supported**:
+## 3. Operators
 
-  * `integer`, `long`, `float`, `string`, `boolean`, `list`
-
----
-
-## 4. Operators
-
-* `+`, `-`, `*`, `/`, `%`, `==`, `!=`, `>`, `<`, `>=`, `<=`, `and`, `or`, `not`
+* `+`, `-`, `*`, `/`, `==`, `!=`, `>`, `<`, `>=`, `<=`
 
 ---
 
-## 5. Built-in Functions
-
-* `length`, `type`, `input`, `random`, `print`, `str`, `int`, `float`, `bool`
-
----
-
-## 6. Examples
+## 4. Examples
 
 ### Factorial
 
@@ -232,7 +190,7 @@ end
 
 ---
 
-## 7. File Execution
+## 5. File Execution
 
 Save code in a `.ns` file and run:
 

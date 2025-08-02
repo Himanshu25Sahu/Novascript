@@ -6,7 +6,7 @@
 #include "Parser.h"
 #include "SymbolTable.h"
 #include "SemanticAnalyzer.h"
-#include "Interpreter.h" // Added for interpreter phase
+#include "Interpreter.h"
 #include "Type.h"
 
 namespace MyCustomLang {
@@ -37,7 +37,7 @@ void printSymbolTable(const SymbolTable& symbolTable) {
     std::cout << "Symbol Table:\n";
     const auto& scopes = symbolTable.getScopes();
     for (size_t i = 0; i < scopes.size(); ++i) {
-        if (scopes[i].empty()) continue; // Skip empty scopes
+        if (scopes[i].empty()) continue;
         std::cout << "Scope " << i << ":\n";
         for (const auto& [name, symbol] : scopes[i]) {
             std::cout << "  Variable: " << name 
@@ -58,7 +58,7 @@ void printSymbolTable(const SymbolTable& symbolTable) {
     }
 }
 
-} // namespace MyCustomLang
+}
 
 int main() {
     std::ifstream file("code.ns");
@@ -94,28 +94,28 @@ int main() {
                   << ast.statements.size() << " statements.\n";
         MyCustomLang::printAST(ast);
 
-        // Add semantic analysis
         MyCustomLang::SemanticAnalyzer analyzer(parser.getSymbolTable());
-        analyzer.analyze(ast);
-        std::cout << "Semantic analysis successful!\n";
+        try {
+            analyzer.analyze(ast);
+            std::cout << "Semantic analysis successful!\n";
+            MyCustomLang::printSymbolTable(analyzer.getSymbolTable());
+        } catch (const MyCustomLang::SemanticError& e) {
+            throw std::runtime_error("Semantic error at line " + 
+                                     std::to_string(e.token.line) + ": " + e.what());
+        }
 
-        MyCustomLang::printSymbolTable(analyzer.getSymbolTable()); // Changed to use analyzer's symbol table
-
-        // Add interpreter phase
         std::cout << "\nInterpreting program...\n";
+        std::cout << "________________________________________\n";
         MyCustomLang::Interpreter interpreter(analyzer.getSymbolTable());
         interpreter.interpret(ast);
+        std::cout << "________________________________________\n";
         std::cout << "Interpretation successful!\n";
 
     } catch (const MyCustomLang::ParserError& e) {
         std::cerr << "Parsing failed at line " << e.token.line << ": " << e.what() << "\n";
         return 1;
-    } catch (const MyCustomLang::SemanticError& e) {
-        std::cerr << e.what() << "\n";
-        return 1;
-    } catch (const std::runtime_error& e) { // Catch runtime errors from interpreter
-        std::cerr << "Runtime error: " << e.what() << "\n";
-        return 1;
+    } catch (const std::runtime_error& e) {
+        std::cout << e.what() << "\n"; // Allow interpreter to handle
     }
 
     return 0;

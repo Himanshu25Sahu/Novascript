@@ -153,16 +153,21 @@ StmtPtr Parser::parseVarDecl() {
     if (name.type != TokenType::IDENTIFIER) {
         throw ParserError(name, "Expected identifier after 'let'");
     }
-    if (symbolTable.symbolExistsInCurrentScope(name.lexeme)) { // Changed from symbolExists
+    if (symbolTable.symbolExistsInCurrentScope(name.lexeme)) {
         throw ParserError(name, "Variable '" + name.lexeme + "' already declared in this scope");
     }
 
     if (!match(TokenType::BE) && !match(TokenType::EQUAL)) {
         throw ParserError(peek(), "Expected 'be' or '=' after identifier in 'let' statement");
     }
-    ExprPtr init = parseExpr();
 
-    Token typeHint = Token(TokenType::NONE, "", 0);
+    ExprPtr init = nullptr;
+    // Check if an expression follows (not dedent, end, catch, or EOF)
+    if (!check(TokenType::DEDENT) && !check(TokenType::END) && !check(TokenType::CATCH) && !isAtEnd()) {
+        init = parseExpr();
+    }
+
+    Token typeHint = Token(TokenType::NONE, "", name.line);
     bool isLong = false;
     if (match(TokenType::AS)) {
         if (match(TokenType::INTEGER)) {

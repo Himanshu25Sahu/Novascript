@@ -263,15 +263,3 @@ when common_case then ... end
 ```python
 when config.debug and expensive_check() then... # Short-circuit
 ```
-
-## Implementation Timeline
-
-| Phase     | Tasks                     | Duration     |
-|-----------|---------------------------|--------------|
-| Lexer     | Tokenize when/then syntax | 1 week       |
-| Parser    | AST generation            | 2 weeks      |
-| Semantic  | Type checking             | 1 week       |
-| IR        | Lowering & optimizations  | 2 weeks      |
-| Codegen   | Target output generation  | 3 weeks      |
-| Runtime   | VM/Interpreter core       | 2 weeks      |
-| Testing   | Unit/integration tests    | Ongoing      |

@@ -5,6 +5,7 @@
 #include "Type.h"
 #include <stdexcept>
 #include <string>
+#include "Token.h"
 
 namespace MyCustomLang {
 class Program;
@@ -18,8 +19,9 @@ namespace MyCustomLang {
 
 class SemanticError : public std::runtime_error {
 public:
+    Token token;
     SemanticError(const Token& token, const std::string& message)
-        : std::runtime_error("Semantic error at line " + std::to_string(token.line) + ": " + message) {}
+        : std::runtime_error(message), token(token) {}
 };
 
 class SemanticAnalyzer {

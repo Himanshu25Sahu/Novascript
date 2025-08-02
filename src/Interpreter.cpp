@@ -78,10 +78,13 @@ Value Interpreter::evaluateExpr(const Expr* expr) {
 }
 
 void Interpreter::executeStmt(const Stmt* stmt) {
-    if (auto* varDecl = dynamic_cast<const VarDeclStmt*>(stmt)) {
-        Value value = evaluateExpr(varDecl->init.get());
-        env.define(varDecl->name.lexeme, value);
-    } else if (auto* setStmt = dynamic_cast<const SetStmt*>(stmt)) {
+  if (auto* varDecl = dynamic_cast<const VarDeclStmt*>(stmt)) {
+    if (!varDecl->init) {
+        throw std::runtime_error("Variable '" + varDecl->name.lexeme + "' declared without an initializer");
+    }
+    Value value = evaluateExpr(varDecl->init.get());
+    env.define(varDecl->name.lexeme, value);
+} else if (auto* setStmt = dynamic_cast<const SetStmt*>(stmt)) {
         Value value = evaluateExpr(setStmt->value.get());
         env.assign(setStmt->name.lexeme, value);
     } else if (auto* sayStmt = dynamic_cast<const SayStmt*>(stmt)) {
@@ -177,7 +180,27 @@ void Interpreter::executeStmt(const Stmt* stmt) {
             }
         }
         env.exitScope();
-    } else {
+    }
+    else if (auto* tryCatch = dynamic_cast<const TryCatchStmt*>(stmt)) {
+    env.enterScope(); // Enter scope for try block
+    try {
+        // Execute try body
+        for (const auto& s : tryCatch->tryBody) {
+            executeStmt(s.get());
+        }
+        env.exitScope(); // Exit scope if try succeeds
+    } catch (const std::runtime_error& e) {
+        // Define catch variable with error message
+        env.define(tryCatch->exceptionVar.lexeme, std::string(e.what()));
+        // Execute catch body in same scope (or adjust as needed)
+        for (const auto& s : tryCatch->catchBody) {
+            executeStmt(s.get());
+        }
+        env.exitScope(); // Exit scope after catch
+    }
+}
+    
+    else {
         throw std::runtime_error("Unknown statement type");
     }
 }

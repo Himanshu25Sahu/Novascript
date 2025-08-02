@@ -4,6 +4,8 @@
 namespace MyCustomLang {
 
 void SemanticAnalyzer::analyze(Program& program) {
+    // Reset symbol table to a fresh state
+    symbolTable = SymbolTable(); // Creates a new symbol table with only a global scope
     for (auto& stmt : program.statements) {
         analyzeStmt(stmt.get());
     }
@@ -11,17 +13,37 @@ void SemanticAnalyzer::analyze(Program& program) {
 
 void SemanticAnalyzer::analyzeStmt(Stmt* stmt) {
     if (auto* varDecl = dynamic_cast<VarDeclStmt*>(stmt)) {
+        // Check for redeclaration in the current scope
+        if (symbolTable.symbolExistsInCurrentScope(varDecl->name.lexeme)) {
+            throw SemanticError(varDecl->name, "Variable '" + varDecl->name.lexeme + "' already declared in this scope");
+        }
+        Type declaredType = Type::NONE;
+        // Handle type hint if provided
+        if (varDecl->typeHint.type != TokenType::NONE) {
+            if (varDecl->typeHint.type == TokenType::INTEGER) {
+                declaredType = Type::INTEGER;
+            } else if (varDecl->typeHint.type == TokenType::STRING) {
+                declaredType = Type::STRING;
+            } else {
+                throw SemanticError(varDecl->typeHint, "Invalid type hint");
+            }
+        }
+        // Handle initializer if present
         if (varDecl->init) {
             analyzeExpr(varDecl->init.get());
             Type initType = varDecl->init->inferredType;
-            if (varDecl->typeHint.type != TokenType::NONE) {
-                varDecl->declaredType = (varDecl->typeHint.type == TokenType::INTEGER) ? Type::INTEGER : Type::STRING;
-                checkTypeCompatibility(varDecl->declaredType, initType, varDecl->name);
+            if (declaredType != Type::NONE) {
+                checkTypeCompatibility(declaredType, initType, varDecl->name);
             } else {
-                varDecl->declaredType = initType;
+                declaredType = initType;
             }
-            symbolTable.updateSymbolType(varDecl->name.lexeme, varDecl->declaredType);
-        }
+        } else if (declaredType == Type::NONE) {
+    // Do not throw error here; let the interpreter handle it during execution
+    declaredType = Type::NONE; // Keep as NONE; interpreter will catch the issue
+}
+// Add the symbol to the symbol table
+symbolTable.addSymbol(varDecl->name, declaredType, false);
+varDecl->declaredType = declaredType;
     } else if (auto* setStmt = dynamic_cast<SetStmt*>(stmt)) {
         analyzeExpr(setStmt->value.get());
         Type valueType = setStmt->value->inferredType;
@@ -85,16 +107,20 @@ void SemanticAnalyzer::analyzeStmt(Stmt* stmt) {
         }
         symbolTable.exitScope();
     } else if (auto* funcDef = dynamic_cast<FunctionDefStmt*>(stmt)) {
+    // Register function in global scope (scopes[0]) if not already present
+    if (!symbolTable.symbolExistsInCurrentScope(funcDef->name.lexeme)) {
+        symbolTable.addSymbol(funcDef->name, Type::FUNCTION, false, funcDef->parameters);
+    }
     symbolTable.enterScope();
     for (const auto& param : funcDef->parameters) {
-        symbolTable.addSymbol(param, Type::INTEGER, false); // Set INTEGER for parameters
+        symbolTable.addSymbol(param, Type::INTEGER, false);
     }
     Type inferredReturnType = Type::NONE;
     for (auto& s : funcDef->body) {
         analyzeStmt(s.get());
         if (auto* returnStmt = dynamic_cast<ReturnStmt*>(s.get())) {
             if (returnStmt->value) {
-                analyzeExpr(returnStmt->value.get()); // Ensure expression is analyzed
+                analyzeExpr(returnStmt->value.get());
                 Type returnType = returnStmt->value->inferredType;
                 returnStmt->returnType = returnType;
                 if (inferredReturnType == Type::NONE) {
@@ -106,9 +132,9 @@ void SemanticAnalyzer::analyzeStmt(Stmt* stmt) {
         }
     }
     symbolTable.updateSymbolReturnType(funcDef->name.lexeme, inferredReturnType);
-    symbolTable.updateSymbolReturnType(funcDef->name.lexeme, inferredReturnType);
     symbolTable.exitScope();
-} else if (auto* callStmt = dynamic_cast<CallStmt*>(stmt)) {
+
+    } else if (auto* callStmt = dynamic_cast<CallStmt*>(stmt)) {
         Symbol sym = symbolTable.getSymbol(callStmt->name.lexeme);
         if (sym.type != Type::FUNCTION) {
             throw SemanticError(callStmt->name, "'" + callStmt->name.lexeme + "' is not a function");
